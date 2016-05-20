@@ -74,6 +74,16 @@ def launch_workflow_from_file(ctx, filename):
     ctx.show(ctx.gbdx.workflow.launch(wf_dict))
 
 
+@workflow.command('events')
+@click.option('--id','-i',
+    help="ID of the workflow")
+@pass_context
+def workflow_events(ctx, id):
+    ctx.show(ctx.get('%s/%s/%s' %
+        (workflows_url, id, 'events')
+    ))
+
+
 @workflow.command('schema')
 @pass_context
 def get_wf_schema(ctx):
