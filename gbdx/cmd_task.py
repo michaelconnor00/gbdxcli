@@ -23,7 +23,7 @@ def list_tasks(ctx):
     ctx.show( ctx.get(task_url) )
 
 
-@task.command('describe')
+@task.command('get')
 @click.option('--name','-n', help="Name of task to describe")
 @pass_context
 def describe_task(ctx, name):
