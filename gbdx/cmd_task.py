@@ -13,7 +13,7 @@ cli = task
 
 url_root = '%s/%s' % (host, 'workflows/v1')
 task_url = url_root + '/tasks'
-schema_url = url_root + '/schema/TaskDescriptor'
+schema_url = url_root + '/schemas/TaskDescriptor'
 
 
 @task.command('ls')
