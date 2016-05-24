@@ -24,7 +24,8 @@ def list_tasks(ctx):
 
 
 @task.command('get')
-@click.option('--name','-n', help="Name of task to describe")
+@click.option('--name','-n', type=click.STRING,
+    help="Name of task to describe")
 @pass_context
 def describe_task(ctx, name):
     """Show the task description json for the task named"""
@@ -43,7 +44,8 @@ def register_task_from_file(ctx, filename):
 
 
 @task.command('delete')
-@click.option('--name','-n', help="Name of task to delete")
+@click.option('--name','-n', type=click.STRING,
+    help="Name of task to delete")
 @pass_context
 def delete_task(ctx, name):
     """Delete the named Task from the platform"""
