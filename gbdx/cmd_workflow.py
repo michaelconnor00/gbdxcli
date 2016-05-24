@@ -102,14 +102,18 @@ def get_workflow_schema(ctx):
     help='Name of the state to filter by.')
 @pass_context
 def search(ctx, schema, lookback_hours, owner, state):
+    search_url = workflows_url + '/search'
     if schema:
-        ctx.show(ctx.get(workflows_url + '/search'))
+        ctx.show(ctx.get(search_url))
     else:
         body = {
             "lookback_h": lookback_hours,
             "owner": owner,
             "state": state
         }
+        post_data = {k:v for k, v in body.iteritems() if v is not None}
+        print post_data
         ctx.show(ctx.post(
-            
+            search_url,
+            data=json.dumps(post_data)
         ))
