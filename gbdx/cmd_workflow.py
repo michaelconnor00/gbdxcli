@@ -1,6 +1,5 @@
 import click
 import json
-import datetime
 from gbdxcli import pass_context, host
 
 
@@ -25,7 +24,7 @@ def list_tasks(ctx):
 
 
 @workflow.command('describe_task')
-@click.option('--name','-n',
+@click.option('--name','-n', type=click.STRING,
     help="Name of task to describe")
 @pass_context
 def describe_task(ctx, name):
@@ -34,7 +33,7 @@ def describe_task(ctx, name):
 
 
 @workflow.command('status')
-@click.option('--id','-i',
+@click.option('--id','-i', type=click.STRING,
     help="ID of the workflow to status")
 @click.option('--verbose', '-v', is_flag=True, help='Output a more detailed status of workflow')
 @pass_context
@@ -56,7 +55,7 @@ def status(ctx, id, verbose):
 
 
 @workflow.command('cancel')
-@click.option('--id','-i',
+@click.option('--id','-i', type=click.STRING,
     help="ID of the workflow to cancel")
 @pass_context
 def cancel_workflow(ctx, id):
@@ -75,10 +74,11 @@ def launch_workflow_from_file(ctx, filename):
 
 
 @workflow.command('events')
-@click.option('--id','-i',
+@click.option('--id','-i', type=click.STRING,
     help="ID of the workflow")
 @pass_context
 def workflow_events(ctx, id):
+    """Get the given workflows task events."""
     ctx.show(ctx.get('%s/%s/%s' %
         (workflows_url, id, 'events')
     ))
@@ -86,6 +86,30 @@ def workflow_events(ctx, id):
 
 @workflow.command('schema')
 @pass_context
-def get_wf_schema(ctx):
-    """Get the schema for Task definitions"""
+def get_workflow_schema(ctx):
+    """Get the workflow definition schema."""
     ctx.show(ctx.get(schema_url))
+
+
+@workflow.command('search')
+@click.option('--schema','-s', is_flag=True,
+    help="Flag for returning the search schema")
+@click.option('--lookback-hours', '-l', type=click.INT,
+    help='Number of hours to lookback, 720hrs max.')
+@click.option('--owner', '-o', type=click.STRING,
+    help='Username of owner. Super user access required.')
+@click.option('--state', '-s', type=click.STRING,
+    help='Name of the state to filter by.')
+@pass_context
+def search(ctx, schema, lookback_hours, owner, state):
+    if schema:
+        ctx.show(ctx.get(workflows_url + '/search'))
+    else:
+        body = {
+            "lookback_h": lookback_hours,
+            "owner": owner,
+            "state": state
+        }
+        ctx.show(ctx.post(
+            
+        ))
