@@ -98,7 +98,7 @@ def build_workflows_status(api_status, less=False):
 @pass_context
 def cancel_workflow(ctx, id):
     """Cancel the given workflow ID"""
-    ctx.show(ctx.gbdx.workflow.cancel(id))
+    ctx.show(ctx.gbdx.workflow.cancel(str(id)))
 
 
 @workflow.command('launch')
@@ -118,6 +118,16 @@ def workflow_events(ctx, id):
     """Get the given workflow ID task events."""
     ctx.show(ctx.get('%s/%s/%s' %
         (workflows_url, id, 'events')
+    ))
+
+
+@workflow.command('get')
+@click.argument('id', nargs=1, type=click.INT)
+@pass_context
+def workflow_details(ctx, id):
+    """Get the given workflow ID details."""
+    ctx.show(ctx.get('%s/%s' %
+        (workflows_url, id)
     ))
 
 
