@@ -5,6 +5,7 @@ from gbdxcli import pass_context, host
 
 @click.group()
 def task():
+    """GBDX task commands"""
     pass
 
 
