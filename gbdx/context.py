@@ -29,18 +29,18 @@ class CommandContext(object):
             msg %= args
         click.echo(msg, file=sys.stderr)
 
-    def show(self, data):
+    def show(self, data, sort=True):
         """Output Formated JSON"""
         try:
-            click.echo(json.dumps(data, sort_keys=True, indent=4, separators=(',', ': ')))
+            output = json.dumps(data, sort_keys=sort, indent=4, separators=(',', ': '))
         except TypeError:
             try:
                 output = json.dumps(
                     json.loads(data.text),
-                    sort_keys=True,
+                    sort_keys=sort,
                     indent=4,
                     separators=(',', ': ')
                 )
             except ValueError:
                 output = data.text
-            click.echo(output)
+        click.echo(output)
