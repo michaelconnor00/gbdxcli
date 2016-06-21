@@ -18,10 +18,34 @@ schema_url = url_root + '/schemas/TaskDescriptor'
 
 
 @task.command('ls')
+@click.option('--startswith','-s', type=click.STRING,
+    help="Only return tasks that start with this substring")
+@click.option('--contains','-c', type=click.STRING,
+    help="Only return tasks that contain this substring")
+@click.option('--endswith','-e', type=click.STRING,
+    help="Only return tasks that end with this substring")
 @pass_context
-def list_tasks(ctx):
+def list_tasks(ctx, startswith, contains, endswith):
     """List workflow tasks available to the user"""
-    ctx.show( ctx.get(task_url) )
+    all_tasks = ctx.get(task_url).json()['tasks']
+
+    # Filter all tasks
+    st_w_tasks = [task for task in all_tasks if startswith and task.startswith(startswith)]
+    con_tasks = [task for task in all_tasks if contains and contains in str(task)]
+    end_w_tasks = [task for task in all_tasks if endswith and task.endswith(endswith)]
+
+    filtered_tasks = []
+    if startswith:
+        filtered_tasks = set(st_w_tasks)
+    if contains:
+        filtered_tasks = set(con_tasks) & set(filtered_tasks) if filtered_tasks else set(con_tasks)
+    if endswith:
+        filtered_tasks = set(end_w_tasks) & set(filtered_tasks)  if filtered_tasks else set(end_w_tasks)
+
+    if filtered_tasks == []:
+        filtered_tasks = all_tasks
+
+    ctx.show(list(filtered_tasks))
 
 
 @task.command('get')
