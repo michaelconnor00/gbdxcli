@@ -5,7 +5,7 @@ from gbdxcli import pass_context, host
 
 @click.group()
 def workflow():
-    """GBDX workflow commands"""
+    """Workflow API commands"""
     pass
 
 
