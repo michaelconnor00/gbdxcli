@@ -5,7 +5,7 @@ from gbdxcli import pass_context, host
 
 @click.group()
 def task():
-    """GBDX task commands"""
+    """Task API commands"""
     pass
 
 
@@ -83,3 +83,41 @@ def delete_task(ctx, name):
 def get_task_schema(ctx):
     """Get the schema for Task definitions"""
     ctx.show(ctx.get(schema_url))
+
+
+@task.command('stdout')
+@click.option('--task_id','-t', type=click.INT,
+    help="Name of task")
+@click.option('--workflow_id','-i', type=click.INT,
+    help="Id of task")
+@pass_context
+def get_stdout(ctx, task_id, workflow_id):
+
+    if task_id is None or workflow_id is None:
+        ctx.show('Both task_id and workflow_id are required')
+        return
+
+    stdout_url = url_root + '/workflows/%s/tasks/%s/stdout' % (
+        workflow_id, task_id
+    )
+
+    ctx.show(ctx.get(stdout_url))
+
+
+@task.command('stderr')
+@click.option('--task_id','-t', type=click.INT,
+    help="Name of task")
+@click.option('--workflow_id','-i', type=click.INT,
+    help="Id of task")
+@pass_context
+def get_stderr(ctx, task_id, workflow_id):
+
+    if task_id is None or workflow_id is None:
+        ctx.show('Both task_id and workflow_id are required')
+        return
+
+    stdout_url = url_root + '/workflows/%s/tasks/%s/stderr' % (
+        workflow_id, task_id
+    )
+
+    ctx.show(ctx.get(stdout_url))
