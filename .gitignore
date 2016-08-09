@@ -2,5 +2,4 @@
 build/
 dist/
 *.egg_info
-*.egg-info
 .env
