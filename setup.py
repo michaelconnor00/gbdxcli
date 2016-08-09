@@ -10,6 +10,6 @@ setup(
     ],
     entry_points='''
         [console_scripts]
-        gbdx=gbdxcli:cli
+        gbdx=gbdxcli.main:cli
     '''
 )
