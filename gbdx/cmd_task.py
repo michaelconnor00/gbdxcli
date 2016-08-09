@@ -88,7 +88,7 @@ def get_task_schema(ctx):
 @task.command('stdout')
 @click.option('--task_id','-t', type=click.INT,
     help="Name of task")
-@click.option('--workflow_id','-i', type=click.INT,
+@click.option('--workflow_id','-w', type=click.INT,
     help="Id of task")
 @pass_context
 def get_stdout(ctx, task_id, workflow_id):
@@ -107,7 +107,7 @@ def get_stdout(ctx, task_id, workflow_id):
 @task.command('stderr')
 @click.option('--task_id','-t', type=click.INT,
     help="Name of task")
-@click.option('--workflow_id','-i', type=click.INT,
+@click.option('--workflow_id','-w', type=click.INT,
     help="Id of task")
 @pass_context
 def get_stderr(ctx, task_id, workflow_id):
