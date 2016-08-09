@@ -78,6 +78,7 @@ def build_workflows_status(api_status, less=False):
             # Parse task details
             for task in wf['tasks']:
                 task_list.append({
+                    'id': task['id'],
                     'name': task['name'],
                     'state': task['state'],
                     'note': task['note'],
