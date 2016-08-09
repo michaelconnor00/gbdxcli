@@ -3,7 +3,7 @@ import os
 import sys
 
 
-CMD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__)))
+CMD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'commands'))
 
 class CommandLoader(click.MultiCommand):
 
@@ -20,7 +20,7 @@ class CommandLoader(click.MultiCommand):
         try:
             if sys.version_info[0] == 2:
                 name = name.encode('ascii', 'replace')
-            mod = __import__('gbdxcli.cmd_' + name,
+            mod = __import__('gbdxcli.commands.cmd_' + name,
                              None, None, ['cli'])
         except ImportError as e:
             print e
