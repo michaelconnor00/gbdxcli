@@ -1,5 +1,5 @@
 import click
-from gbdxcli import pass_context
+from gbdxcli.main import pass_context
 
 
 @click.group()

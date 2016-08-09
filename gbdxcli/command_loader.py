@@ -20,7 +20,7 @@ class CommandLoader(click.MultiCommand):
         try:
             if sys.version_info[0] == 2:
                 name = name.encode('ascii', 'replace')
-            mod = __import__('gbdx.cmd_' + name,
+            mod = __import__('gbdxcli.cmd_' + name,
                              None, None, ['cli'])
         except ImportError as e:
             print e

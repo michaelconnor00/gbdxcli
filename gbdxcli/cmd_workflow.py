@@ -1,6 +1,6 @@
 import click
 import json
-from gbdxcli import pass_context, host
+from gbdxcli.main import pass_context, host
 
 
 @click.group()

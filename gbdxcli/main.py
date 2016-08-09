@@ -22,8 +22,8 @@ gbdx catalog strip_footprint -c 10200100359B2C00
 
 import click
 
-from gbdx.command_loader import CommandLoader
-from gbdx.context import CommandContext
+from gbdxcli.command_loader import CommandLoader
+from gbdxcli.context import CommandContext
 
 
 pass_context = click.make_pass_decorator(CommandContext, ensure=True)
