@@ -7,7 +7,7 @@ setup(
         'Click',
         'gbdxtools',
         'gbdx-auth',
-	'simplejson'
+        'simplejson'
     ],
     packages=['gbdxcli'],
     entry_points='''
