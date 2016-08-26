@@ -59,7 +59,7 @@ def workflow():
 def list_tasks():
     """List workflow tasks available to the user"""
     show( gbdx.workflow.list_tasks() )
-    
+
 
 @workflow.command()
 @click.option('--name','-n',

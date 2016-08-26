@@ -4,7 +4,7 @@ from gbdxcli.main import pass_context
 
 @click.group()
 def s3():
-    """GBDX S3 Interface"""
+    """S3 Interface"""
     pass
 
 # Required for dynamic import
