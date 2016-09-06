@@ -1,23 +1,15 @@
 import click
-from gbdxcli.main import pass_context
+from gbdxcli import pass_context
 from gbdxcli.commands.utils import _s3creds
 
-#
-# S3temp command group for temporary credentials
-#
+
 @click.group()
 def s3temp():
-    """S3 Temporary Credentials Interface"""
+    """S3 temporary credentials commands"""
     pass
 
 # Required for dynamic import
 cli = s3temp
-
-
-@cli.group()
-def s3temp():
-    """Set temporary S3 credentials for access to GBDX S3 customer-data bucket."""
-    pass
 
 
 @s3temp.command()

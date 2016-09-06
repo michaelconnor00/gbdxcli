@@ -1,11 +1,11 @@
 import click
 import json
-from gbdxcli.main import pass_context, host
+from gbdxcli import pass_context, host
 
 
 @click.group()
 def workflow():
-    """Workflow API commands"""
+    """Workflow commands"""
     pass
 
 

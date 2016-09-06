@@ -1,10 +1,10 @@
 import click
-from gbdxcli.main import pass_context
+from gbdxcli import pass_context
 
 
 @click.group()
 def s3():
-    """S3 Interface"""
+    """S3 user commands"""
     pass
 
 # Required for dynamic import

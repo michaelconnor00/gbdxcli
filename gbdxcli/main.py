@@ -23,11 +23,6 @@ gbdx catalog strip_footprint -c 10200100359B2C00
 import click
 
 from gbdxcli.command_loader import CommandLoader
-from gbdxcli.context import CommandContext
-
-
-pass_context = click.make_pass_decorator(CommandContext, ensure=True)
-host = 'https://geobigdata.io/'
 
 
 # Main command group
@@ -35,6 +30,6 @@ host = 'https://geobigdata.io/'
 def cli():
     """GBDX Command Line Interface
     example:
-        gbdx workflow list_tasks
+        gbdx workflow ls
     """
     pass

@@ -1,18 +1,23 @@
+"""
+See Click docs for Custom Multi Commands: http://click.pocoo.org/5/commands/#custom-multi-commands
+"""
 import click
 import os
 import sys
 
 
-CMD_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'commands'))
+plugin_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'commands'))
 
 class CommandLoader(click.MultiCommand):
 
+    COMMAND_FILE_PREFIX = 'cmd_'
+
     def list_commands(self, ctx):
         rv = []
-        for filename in os.listdir(CMD_FOLDER):
+        for filename in os.listdir(plugin_folder):
             if filename.endswith('.py') and \
-               filename.startswith('cmd_'):
-                rv.append(filename[4:-3])
+               filename.startswith(self.COMMAND_FILE_PREFIX):
+                rv.append(filename[len(self.COMMAND_FILE_PREFIX):-3])
         rv.sort()
         return rv
 
@@ -26,3 +31,9 @@ class CommandLoader(click.MultiCommand):
             print e
             return
         return mod.cli
+
+cli = CommandLoader(help='This tool\'s subcommands are loaded from a '
+            'plugin folder dynamically.')
+
+if __name__ == '__main__':
+    cli()

@@ -1,11 +1,11 @@
 import json
 import click
-from gbdxcli.main import pass_context, host
+from gbdxcli import pass_context, host
 
 
 @click.group()
 def task():
-    """Task API commands"""
+    """Task commands"""
     pass
 
 

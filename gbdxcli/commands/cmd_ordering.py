@@ -1,9 +1,10 @@
 import click
-from gbdxcli.main import pass_context
+from gbdxcli import pass_context
 
 
 @click.group()
 def ordering():
+    """Ordering commands"""
     pass
 
 
