@@ -8,7 +8,9 @@ setup(
         'gbdxtools',
         'gbdx-auth',
         'simplejson',
-        'docker-py'
+        'docker-py',
+        'jsonschema==2.4.0',
+        'glob2'
     ],
     packages=['gbdxcli'],
     entry_points='''
