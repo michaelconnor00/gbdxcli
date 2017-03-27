@@ -10,7 +10,8 @@ setup(
         'simplejson',
         'docker-py',
         'jsonschema==2.4.0',
-        'glob2'
+        'glob2',
+        'arrow'
     ],
     packages=['gbdxcli'],
     entry_points='''
