@@ -1,8 +1,12 @@
 import sys
+import os
 import json
 import click
 from gbdxtools import Interface
-from gbdx_auth import gbdx_auth
+
+
+class APIError(Exception):
+    pass
 
 
 class CommandContext(object):
@@ -11,8 +15,10 @@ class CommandContext(object):
     """
 
     def __init__(self):
-        self.session = gbdx_auth.get_session()
-        self.gbdx = Interface(gbdx_connection=self.session)
+        host = os.environ.get('GBDXTOOLS_HOST', None)
+        config = os.environ.get('GBDXTOOLS_PROFILE', None)
+        self.gbdx = Interface(host=host, config_file=config)
+        self.session = self.gbdx.gbdx_connection
 
     def get(self, url):
         return self.session.get(url)
@@ -24,6 +30,16 @@ class CommandContext(object):
     def put(self, url, data):
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         return self.session.put(url, data=data, headers=headers)
+
+    @staticmethod
+    def raise_or_response(response, parse=True):
+        if response.status_code >= 400:
+            raise APIError(response.text)
+
+        if parse:  # Parse from JSON adn return
+            return response.json()
+        else:
+            return response.text
 
     def delete(self, url):
         return self.session.delete(url)

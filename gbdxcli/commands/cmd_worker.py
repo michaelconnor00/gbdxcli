@@ -3,9 +3,9 @@ import shutil
 import click
 import json
 import subprocess
-# import tempfile
+import tarfile
+import StringIO
 from docker import Client
-# import jsonschema
 
 from gbdxcli import pass_context, host
 
@@ -45,10 +45,10 @@ class InvalidPortError(Exception):
     help='Output a more detailed status of workflow.')
 @click.option('--pull', '-p', is_flag=True,
     help='Pull the latest image from Docker hub before creating a container.')
-@click.option('--del-output', '-d', is_flag=True,
+@click.option('--remove-output', '-rm', is_flag=True,
     help='Delete the output folder after execution.')
 @pass_context
-def run_workflow(ctx, filename, output_dir, verbose, pull, del_output):
+def run_workflow(ctx, filename, output_dir, verbose, pull, remove_output):
     """
     Command to run a workflow locally
     """
@@ -87,8 +87,6 @@ def run_workflow(ctx, filename, output_dir, verbose, pull, del_output):
     img = task_def['containerDescriptors'][0]['properties']['image']
 
     # Map input and output volumes
-    # input_path = os.path.join(os.getcwd(), 'inputs')
-    # input_path = tempfile.mkdtemp()
     if output_dir is None:
         output_path = os.path.join(os.getcwd(), '%s_outputs' % wf_dict['name'])
     else:
@@ -98,7 +96,6 @@ def run_workflow(ctx, filename, output_dir, verbose, pull, del_output):
     cont_input_path = os.path.join(os.path.sep, 'mnt', 'work', 'input')
     cont_output_path = os.path.join(os.path.sep, 'mnt', 'work', 'output')
 
-    # _check_or_create_dir(input_path)
     _check_or_create_dir(output_path)
 
     vol_mnts = []
@@ -112,7 +109,7 @@ def run_workflow(ctx, filename, output_dir, verbose, pull, del_output):
         task_port = [p['type'] for p in task_def['inputPortDescriptors'] if p['name'] == port['name'] or port['name'].startswith(p['name'])]
 
         if len(task_port) == 0:
-            raise InvalidPortError('Port name not found in task definition')
+            raise InvalidPortError('Port name not found in task definition: %s', port['name'])
 
         if task_port[0] == 'directory':
             # Check if abs path
@@ -173,11 +170,10 @@ def run_workflow(ctx, filename, output_dir, verbose, pull, del_output):
     print('Container Stopped\n')
 
     # Copy ports.json to output
-    cnt_id_and_src_path = '%s:%s' % (container_id.get('Id'), os.path.join(cont_output_path, 'ports.json'))
-    try:
-        subprocess.check_call(['docker', 'cp', cnt_id_and_src_path, output_path])
-    except subprocess.CalledProcessError:
-        print("No output ports.json found")
+    output_ports_exist = _get_output_string_ports(dkr, container_id, output_path)
+
+    # Copy status.json to output.
+    status_output = _get_task_status(dkr, container_id)
 
     output = dkr.logs(
         container=container_id.get('Id'),
@@ -185,15 +181,15 @@ def run_workflow(ctx, filename, output_dir, verbose, pull, del_output):
         stderr=True
     ).decode("utf-8")
 
-    print('Container Output:\n')
+    print('\t--Start Output--\n')
+    print('' if output_ports_exist is None else output_ports_exist)
     print(output)
     print('\t--End Output--')
+    print('Workflow Status: %s' % status_output)
 
-    # shutil.rmtree(input_path)
-    if del_output:
+    if remove_output:
         shutil.rmtree(output_path)
 
-    print('Stop and Remove Container')
     dkr.remove_container(container_id.get('Id'))
 
 
@@ -209,52 +205,39 @@ def _check_or_create_dir(full_path):
     finally:
         os.makedirs(full_path)
 
-#### For running more than one task.
 
-# def _sort_by_task_dependencies(task_list):
-#     for i, task in enumerate(task_list):
-#
-#         if _num_input_deps(task['inputs']) == 0:
-#             continue
-#
-#         for dep_task_name in [x['source'].split(':')[0] for x in task['inputs'] if 'source' in x.keys()]:
-#
-#             for task in task_list:
-#                 if dep_task_name != task['name']:
-#                     continue
-#
-#                 task_index = _get_task_index(task['name'], task_list)
-#
-#                 if i <= task_index:
-#                     # Move the task back in the list_tasks
-#                     task_to_move = task_list.pop(i)
-#                     task_list.insert(task_index + 1, task_to_move)
-#     return task_list
-#
-#
-# def _get_task_index(task_name, task_list):
-#     for x, task in enumerate(task_list):
-#         if task['name'] == task_name:
-#             return x
-#     raise IndexError("task %s not found" % task_name)
-#
-#
-# def _num_input_deps(inputs):
-#     cnt = 0
-#     for i in inputs:
-#         if 'source' in i.keys():
-#             cnt+=1
-#     return cnt
-#
-#
-# def _compare_task_dependencies(x, y):
-#     x_num_deps = _num_input_deps(x['inputs'])
-#
-#     y_num_deps = _num_input_deps(y['inputs'])
-#
-#     if x_num_deps < y_num_deps:
-#         return -1
-#     elif x_num_deps == y_num_deps:
-#         return 0
-#     else:
-#         return 1
+def _get_output_string_ports(dkr, container_id, output_root):
+    try:
+        strm, _ = dkr.get_archive(
+            container_id.get('Id'),
+            '/mnt/work/output/ports.json'
+        )
+
+        file_content = StringIO.StringIO(strm.read())
+        tf = tarfile.open(fileobj=file_content)
+        ef = tf.extractfile("ports.json")
+
+        output_ports_exist = None
+
+        with open(os.path.join(output_root, 'ports.json'), 'w') as of:
+            json.dump(json.load(ef), of)
+    except Exception:
+        output_ports_exist = "No output ports.json found"
+
+    return output_ports_exist
+
+
+def _get_task_status(dkr, container_id):
+    try:
+        strm, _ = dkr.get_archive(
+            container_id.get('Id'),
+            '/mnt/work/status.json'
+        )
+
+        file_content = StringIO.StringIO(strm.read())
+        tf = tarfile.open(fileobj=file_content)
+        ef = tf.extractfile("status.json")
+
+        return json.load(ef)
+    except Exception:
+        return 'No status.json file found'
