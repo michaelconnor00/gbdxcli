@@ -1,6 +1,7 @@
 import click
 import json
 from gbdxcli import pass_context, host
+import arrow
 
 
 @click.group()
@@ -29,8 +30,10 @@ def list_workflows(ctx):
 @click.argument('id', nargs=-1, type=click.INT)
 @click.option('--verbose', '-v', is_flag=True,
     help='Output a more detailed status of workflow')
+@click.option('--runtime', '-r', is_flag=True,
+    help='Output runtime with verbose output.')
 @pass_context
-def status(ctx, id, verbose):
+def status(ctx, id, verbose, runtime):
     """Display the status information for the workflow ID(s) given."""
     id = [str(i) for i in id]
     is_multistatus = len(id) > 1
@@ -38,25 +41,28 @@ def status(ctx, id, verbose):
         if is_multistatus:
             'Return multistatuses'
             r = ctx.post(workflows_url + '/multistatus', data=json.dumps(id))
-            ctx.show(build_workflows_status(r.json(), less=True))
+            ctx.show(build_workflows_status(ctx.raise_or_response(r), less=True))
         else:
             'Return single status'
             ctx.show(ctx.gbdx.workflow.status(id[0]))
     else:
+        events_dict = None
         if is_multistatus:
             'Get multistatuses'
             response = ctx.post(workflows_url + '/multistatus', data=json.dumps(id))
-            r_dict = response.json()
+            r_dict = ctx.raise_or_response(response)
         else:
             'Get single status'
             response = ctx.get(workflows_url + '/' + id[0])
-            r_dict = [response.json()]
+            r_dict = [ctx.raise_or_response(response)]
+            if runtime:
+                r = ctx.get(workflows_url + '/' + id[0] + '/events')
+                events_dict = ctx.raise_or_response(r)
 
-        ctx.show(build_workflows_status(r_dict))
+        ctx.show(build_workflows_status(r_dict, events_dict))
 
 
-
-def build_workflows_status(api_status, less=False):
+def build_workflows_status(api_status, events, less=False):
     """
     Build and show the status for the provided workflow(s)
     :param api_status: a list of workflow statuses, or a single workflow status.
@@ -72,27 +78,59 @@ def build_workflows_status(api_status, less=False):
 
         if less:
             # Parse workflow detials only
-            output_str.append({'Worflow %s' % wf['id']: wf['state']})
+            output_str.append({'Workflow %s' % wf['id']: wf['state']})
         else:
             task_list = []
+            wf_start_time = None
             # Parse task details
             for task in wf['tasks']:
-                task_list.append({
+                task_detail = {
                     'id': task['id'],
                     'name': task['name'],
                     'state': task['state'],
                     'note': task['note'],
                     'start time': task['start_time']
-                })
+                }
+
+                task_start_time = arrow.get(task['start_time'])
+                if wf_start_time is None or task_start_time < wf_start_time:
+                    if task_start_time is not None:
+                        wf_start_time = task_start_time
+
+                if events is not None:
+                    task_detail['runtime'] = calc_runtime(task['name'], events['Events'])
+
+                task_list.append(task_detail)
 
             output_str.append({
                 'Worflow %s' % wf['id']: {
                     'Tasks': task_list,
-                    'Status': wf['state']
+                    'Status': wf['state'],
+                    'Submitted Time': wf['submitted_time'],
+                    'Runtime': str(arrow.get(wf['completed_time']) - wf_start_time)
                 }
             })
 
     return output_str
+
+
+def calc_runtime(task_name, events):
+    """Calculate the runtime of the task name"""
+    start_time = None
+    end_time = None
+
+    for event in events:
+        if event['task'] == task_name:
+            state = event['state']
+            if state == 'running':
+                start_time = arrow.get(event['timestamp'])
+            elif state == 'complete':
+                end_time = arrow.get(event['timestamp'])
+
+    if not all([start_time, end_time]):
+        return 'Task did not Run'
+
+    return str(end_time - start_time)
 
 
 @workflow.command('cancel')

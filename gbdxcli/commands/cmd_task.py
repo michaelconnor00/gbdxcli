@@ -27,7 +27,8 @@ schema_url = url_root + '/schemas/TaskDescriptor'
 @pass_context
 def list_tasks(ctx, startswith, contains, endswith):
     """List workflow tasks available to the user"""
-    all_tasks = ctx.get(task_url).json()['tasks']
+    response = ctx.get(task_url).json()
+    all_tasks = response['tasks']
 
     # Filter all tasks
     st_w_tasks = [task for task in all_tasks if startswith and task.startswith(startswith)]
